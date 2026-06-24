@@ -1,8 +1,8 @@
 {
   "framework": "nextjs",
-  "buildCommand": "rm -rf .next && next build",
+  "buildCommand": "next build",
   "devCommand": "next dev",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "functions": {
     "app/api/binance/**": { "maxDuration": 30 },
     "app/api/orders/**": { "maxDuration": 15 }
@@ -13,8 +13,7 @@
       "headers": [
         { "key": "X-Frame-Options", "value": "ALLOW-FROM https://web.telegram.org" },
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://web.telegram.org" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ]
