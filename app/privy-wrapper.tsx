@@ -10,8 +10,7 @@ function isValidPrivyAppId(id: string): boolean {
   return (
     id.length > 10 &&
     id !== "your_privy_app_id" &&
-    id !== "placeholder-app-id" &&
-    id !== "clzgc9nec02k610fge0omnyid" // placeholder we set earlier
+    id !== "placeholder-app-id"
   );
 }
 
