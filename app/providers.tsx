@@ -1,26 +1,29 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { ToastContainer } from "@/components/ui/Toast";
+import { PrivyProviderWrapper } from "./privy-wrapper";
 
-// Lazy load PrivyProvider so it only runs client-side
-import dynamic from "next/dynamic";
+// QueryClient singleton
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: 1, refetchOnWindowFocus: false },
+    },
+  });
+}
 
-const PrivyProviderWrapper = dynamic(
-  () => import("./privy-wrapper").then((m) => m.PrivyProviderWrapper),
-  { ssr: false }
-);
+let browserQueryClient: QueryClient | undefined;
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { retry: 1, refetchOnWindowFocus: false },
-        },
-      })
-  );
+function getQueryClient() {
+  if (typeof window === "undefined") return makeQueryClient();
+  if (!browserQueryClient) browserQueryClient = makeQueryClient();
+  return browserQueryClient;
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  const queryClient = getQueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>
