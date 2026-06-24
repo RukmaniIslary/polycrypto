@@ -1,12 +1,7 @@
 import type { Market } from "@/types";
 
 // Flag images via flagcdn.com (free, no API key needed)
-// w80 = 80px wide PNG
 const FLAG = (code: string) => `https://flagcdn.com/w80/${code}.png`;
-
-// Coin logos via CoinGecko CDN
-const COIN = (id: string) =>
-  `https://assets.coingecko.com/coins/images/${id}/large/logo.png`;
 
 // Known CoinGecko image IDs
 const COINS: Record<string, string> = {
@@ -18,6 +13,56 @@ const COINS: Record<string, string> = {
   arbitrum: "https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg",
 };
 
+// ── Head-to-head FIFA matchup data (shown as big flag cards like Polymarket) ─
+export interface Matchup {
+  id: string;
+  teamA: { name: string; code: string; short: string; flag: string; prob: number };
+  teamB: { name: string; code: string; short: string; flag: string; prob: number };
+  label: string;         // e.g. "STARTS IN 7H" or "LIVE"
+  isLive: boolean;
+  volume_usdt: number;
+  closes_at: string;
+  market_id: string;
+}
+
+export const FIFA_MATCHUPS: Matchup[] = [
+  {
+    id: "m1", label: "STARTS IN 2H", isLive: false,
+    teamA: { name: "Brazil",    code: "br",     short: "BRA", flag: FLAG("br"),     prob: 0.64 },
+    teamB: { name: "Argentina", code: "ar",     short: "ARG", flag: FLAG("ar"),     prob: 0.36 },
+    volume_usdt: 9_100_000, closes_at: "2026-06-25T20:00:00Z", market_id: "fifa-1",
+  },
+  {
+    id: "m2", label: "STARTS IN 5H", isLive: false,
+    teamA: { name: "France",    code: "fr",     short: "FRA", flag: FLAG("fr"),     prob: 0.58 },
+    teamB: { name: "England",   code: "gb-eng", short: "ENG", flag: FLAG("gb-eng"), prob: 0.42 },
+    volume_usdt: 7_200_000, closes_at: "2026-06-25T23:00:00Z", market_id: "fifa-2",
+  },
+  {
+    id: "m3", label: "🔴 LIVE", isLive: true,
+    teamA: { name: "Spain",     code: "es",     short: "ESP", flag: FLAG("es"),     prob: 0.71 },
+    teamB: { name: "Germany",   code: "de",     short: "GER", flag: FLAG("de"),     prob: 0.29 },
+    volume_usdt: 5_800_000, closes_at: "2026-06-25T18:00:00Z", market_id: "fifa-5",
+  },
+  {
+    id: "m4", label: "STARTS IN 7H", isLive: false,
+    teamA: { name: "Portugal",  code: "pt",     short: "POR", flag: FLAG("pt"),     prob: 0.55 },
+    teamB: { name: "USA",       code: "us",     short: "USA", flag: FLAG("us"),     prob: 0.45 },
+    volume_usdt: 4_700_000, closes_at: "2026-06-26T01:00:00Z", market_id: "fifa-9",
+  },
+  {
+    id: "m5", label: "STARTS IN 12H", isLive: false,
+    teamA: { name: "Mexico",    code: "mx",     short: "MEX", flag: FLAG("mx"),     prob: 0.38 },
+    teamB: { name: "Japan",     code: "jp",     short: "JPN", flag: FLAG("jp"),     prob: 0.62 },
+    volume_usdt: 2_100_000, closes_at: "2026-06-26T06:00:00Z", market_id: "fifa-host",
+  },
+  {
+    id: "m6", label: "STARTS IN 1D", isLive: false,
+    teamA: { name: "Morocco",   code: "ma",     short: "MAR", flag: FLAG("ma"),     prob: 0.44 },
+    teamB: { name: "Senegal",   code: "sn",     short: "SEN", flag: FLAG("sn"),     prob: 0.56 },
+    volume_usdt: 1_800_000, closes_at: "2026-06-27T14:00:00Z", market_id: "fifa-8",
+  },
+];
 export const MOCK_MARKETS: Market[] = [
   // ── FIFA World Cup 2026 ──────────────────────────────────────────────────
   {

@@ -16,7 +16,7 @@ export interface Market {
   flag_url?: string;    // country flag for FIFA markets
 }
 
-export type MarketCategory = "All" | "Crypto" | "DeFi" | "Layer2" | "Macro" | "Featured" | "FIFA 2026";
+export type MarketCategory = "All" | "Crypto" | "DeFi" | "Layer2" | "Macro" | "Featured" | "FIFA 2026" | "Sports";
 
 export interface Order {
   id: string;
