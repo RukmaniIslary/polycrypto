@@ -1,35 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { decryptApiKey, getBinanceDepositAddress } from "@/lib/binance";
+import { getPlatformDepositAddress } from "@/lib/binance-admin";
 import { verifyPrivyToken } from "@/lib/privy-server";
+import crypto from "crypto";
 
-export async function POST(req: NextRequest) {
+/**
+ * Returns the platform USDT deposit address + a unique memo for this user.
+ * The user sends USDT to this address WITH their memo in the tag/memo field.
+ * Your backend can then match the deposit to the user via the memo.
+ */
+export async function GET(req: NextRequest) {
   const userId = await verifyPrivyToken(req.headers.get("Authorization"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getSupabaseAdmin();
-  const { data: user } = await supabase
+
+  // Get or create a deterministic memo for this user (short numeric, easy to type)
+  const { data: userRow } = await supabase
     .from("users")
-    .select("binance_api_key_enc, binance_secret_enc")
+    .select("id, deposit_memo")
     .eq("id", userId)
     .single();
 
-  if (!user?.binance_api_key_enc) {
-    // Return a placeholder for demo if no Binance connected
-    return NextResponse.json({
-      address: "TRx1234567890ABCDEF1234567890abcdef12",
-      coin: "USDT",
-      network: "TRC20",
-      connected: false,
-    });
+  let memo = userRow?.deposit_memo as string | null;
+
+  if (!memo) {
+    // Generate a 6-digit deterministic memo from user ID
+    memo = parseInt(
+      crypto.createHash("sha256").update(userId).digest("hex").slice(0, 8),
+      16
+    ).toString().slice(0, 6);
+
+    // Store memo on user row (best effort — ignore error if column doesn't exist yet)
+    await supabase
+      .from("users")
+      .update({ deposit_memo: memo })
+      .eq("id", userId);
   }
 
   try {
-    const apiKey = decryptApiKey(user.binance_api_key_enc);
-    const apiSecret = decryptApiKey(user.binance_secret_enc);
-    const result = await getBinanceDepositAddress({ apiKey, apiSecret });
-    return NextResponse.json({ ...result, connected: true });
-  } catch (err: unknown) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Failed" }, { status: 500 });
+    const { address, network } = await getPlatformDepositAddress();
+    return NextResponse.json({ address, network, memo, coin: "USDT" });
+  } catch (err) {
+    // Fallback: return a static address if Binance API key not set up yet
+    return NextResponse.json({
+      address: process.env.FALLBACK_DEPOSIT_ADDRESS ?? "Contact support to get your deposit address",
+      network: "TRC-20",
+      memo,
+      coin: "USDT",
+      fallback: true,
+    });
   }
 }

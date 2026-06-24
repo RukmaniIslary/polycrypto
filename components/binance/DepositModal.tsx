@@ -2,86 +2,156 @@
 
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, CheckCircle2, Loader2 } from "lucide-react";
+import { Copy, CheckCircle2, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { usePrivySafe as usePrivy } from "@/lib/privy-safe";
 import { useTelegram } from "@/hooks/useTelegram";
-import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
-const DEMO_ADDRESS = "TRx1234567890ABCDEF1234567890abcdef12";
+interface DepositInfo {
+  address: string;
+  network: string;
+  memo: string;
+  coin: string;
+  fallback?: boolean;
+}
 
 export function DepositModal() {
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [address, setAddress] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+  const [copiedMemo, setCopiedMemo] = useState(false);
   const { getAccessToken } = usePrivy();
   const { haptic } = useTelegram();
 
-  const fetchAddress = async () => {
-    setLoading(true);
-    try {
+  const { data, isLoading, isError, refetch } = useQuery<DepositInfo>({
+    queryKey: ["deposit-address"],
+    queryFn: async () => {
       const token = await getAccessToken();
       const res = await fetch("/api/binance/deposit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      setAddress(data.address ?? DEMO_ADDRESS);
-    } catch {
-      setAddress(DEMO_ADDRESS);
-    } finally {
-      setLoading(false);
+      if (!res.ok) throw new Error("Failed to fetch deposit address");
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 min — address doesn't change often
+  });
+
+  const copy = (text: string, which: "address" | "memo") => {
+    navigator.clipboard.writeText(text);
+    haptic.notify("success");
+    if (which === "address") {
+      setCopiedAddress(true);
+      setTimeout(() => setCopiedAddress(false), 2000);
+    } else {
+      setCopiedMemo(true);
+      setTimeout(() => setCopiedMemo(false), 2000);
     }
   };
 
-  const displayAddress = address ?? DEMO_ADDRESS;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#3B82F6" }} />
+        <p className="text-sm" style={{ color: "#94A3B8" }}>Loading deposit address…</p>
+      </div>
+    );
+  }
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(displayAddress);
-    haptic.notify("success");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  if (isError || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <AlertCircle className="w-8 h-8" style={{ color: "#EF4444" }} />
+        <p className="text-sm" style={{ color: "#94A3B8" }}>Failed to load address</p>
+        <button
+          onClick={() => refetch()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm tap-scale"
+          style={{ backgroundColor: "#1A1D26", color: "#3B82F6", border: "1px solid #252836" }}
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-bg-surface border border-border rounded-2xl p-5 mx-4">
-      <h3 className="font-semibold text-text-primary mb-1">Deposit USDT</h3>
-      <p className="text-xs text-text-secondary mb-4">
-        Send USDT (TRC-20) to this address. Min deposit: $1 USDT.
-      </p>
+    <div className="flex flex-col gap-4 px-4">
+      {/* Network badge */}
+      <div className="flex items-center justify-between">
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
+          style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.2)" }}
+        >
+          🔴 {data.coin} · {data.network}
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="tap-scale"
+          style={{ color: "#475569" }}
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* QR Code */}
-      <div className="flex justify-center mb-4">
-        <div className="p-3 bg-white rounded-2xl">
-          <QRCodeSVG value={displayAddress} size={160} level="M" />
+      <div className="flex justify-center">
+        <div className="p-4 bg-white rounded-2xl shadow-lg">
+          <QRCodeSVG value={data.address} size={180} level="M" />
         </div>
       </div>
 
-      {/* Address */}
-      <div className="bg-bg-elevated border border-border rounded-xl p-3 flex items-center gap-2 mb-3">
-        <span className="font-mono text-xs text-text-secondary flex-1 break-all">{displayAddress}</span>
+      {/* Address row */}
+      <div>
+        <p className="text-xs font-medium mb-1.5" style={{ color: "#64748B" }}>Deposit address</p>
         <button
-          onClick={handleCopy}
-          className={cn("shrink-0 tap-scale", copied ? "text-accent-green" : "text-text-dim")}
+          onClick={() => copy(data.address, "address")}
+          className="w-full flex items-center gap-3 p-3.5 rounded-2xl tap-scale text-left"
+          style={{ backgroundColor: "#1A1D26", border: "1px solid #252836" }}
         >
-          {copied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+          <span className="font-mono text-xs flex-1 break-all" style={{ color: "#F1F5F9" }}>
+            {data.address}
+          </span>
+          {copiedAddress
+            ? <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "#22C55E" }} />
+            : <Copy className="w-5 h-5 shrink-0" style={{ color: "#3B82F6" }} />
+          }
         </button>
       </div>
 
-      {!address && (
+      {/* Memo row — important for identifying the user's deposit */}
+      <div>
+        <p className="text-xs font-medium mb-1.5" style={{ color: "#64748B" }}>
+          Your deposit memo{" "}
+          <span className="font-normal" style={{ color: "#EF4444" }}>
+            (required — must include this)
+          </span>
+        </p>
         <button
-          onClick={fetchAddress}
-          disabled={loading}
-          className="w-full bg-accent-blue text-white font-medium py-3 rounded-xl text-sm tap-scale disabled:opacity-60"
+          onClick={() => copy(data.memo, "memo")}
+          className="w-full flex items-center gap-3 p-3.5 rounded-2xl tap-scale"
+          style={{ backgroundColor: "#1A1D26", border: "1px solid rgba(239,68,68,0.3)" }}
         >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Generate Deposit Address"}
+          <span className="font-mono text-2xl font-bold flex-1 text-center tracking-[0.3em]" style={{ color: "#F1F5F9" }}>
+            {data.memo}
+          </span>
+          {copiedMemo
+            ? <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "#22C55E" }} />
+            : <Copy className="w-5 h-5 shrink-0" style={{ color: "#3B82F6" }} />
+          }
         </button>
-      )}
+      </div>
 
-      <p className="text-xs text-text-dim text-center mt-3">
-        Network: TRC-20 (Tron) — Only send USDT
+      {/* Warning */}
+      <div
+        className="flex items-start gap-2.5 p-3.5 rounded-2xl text-xs"
+        style={{ backgroundColor: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}
+      >
+        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#F59E0B" }} />
+        <div style={{ color: "#F59E0B" }}>
+          <strong>You must include your memo</strong> when sending. Without it, your deposit cannot be matched to your account. Min deposit: $1 USDT.
+        </div>
+      </div>
+
+      {/* Min deposit info */}
+      <p className="text-center text-xs" style={{ color: "#475569" }}>
+        Only send USDT on TRC-20 (Tron) · Balance updates within 5–10 minutes
       </p>
     </div>
   );
