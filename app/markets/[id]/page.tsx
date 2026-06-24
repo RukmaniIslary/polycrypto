@@ -1,3 +1,4 @@
+// v2.0 — No Privy, custom auth, working trades
 "use client";
 
 export const dynamic = "force-dynamic";

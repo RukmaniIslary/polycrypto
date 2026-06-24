@@ -1,3 +1,4 @@
+// v2.0 — No Privy, custom auth
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
