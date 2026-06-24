@@ -14,7 +14,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       <PrivyProvider
         appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
         config={{
-          loginMethods: ["email", "wallet", "telegram"],
+          loginMethods: ["email"],
           appearance: {
             theme: "dark",
             accentColor: "#3B82F6",
