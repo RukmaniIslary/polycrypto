@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getBinanceUSDTBalance, decryptApiKey } from "@/lib/binance";
+import { verifyPrivyToken } from "@/lib/privy-server";
 
 // Simple in-memory rate limit: 1 req per 10s per user
 const lastFetch = new Map<string, number>();
 
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) return null;
-  try {
-    const token = auth.slice(7);
-    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
-    return payload.sub ?? payload.userId ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export async function GET(req: NextRequest) {
-  const userId = await getUserId(req);
+  const userId = await verifyPrivyToken(req.headers.get("Authorization"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Rate limit

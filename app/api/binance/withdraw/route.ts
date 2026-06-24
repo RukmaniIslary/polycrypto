@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { decryptApiKey, binanceFetch } from "@/lib/binance";
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) return null;
-  try {
-    const token = auth.slice(7);
-    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
-    return payload.sub ?? payload.userId ?? null;
-  } catch {
-    return null;
-  }
-}
+import { verifyPrivyToken } from "@/lib/privy-server";
 
 export async function POST(req: NextRequest) {
-  const userId = await getUserId(req);
+  const userId = await verifyPrivyToken(req.headers.get("Authorization"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
