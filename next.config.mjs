@@ -6,6 +6,15 @@ const nextConfig = {
   experimental: {
     serverActions: { allowedOrigins: ["*"] },
   },
+  // Stub optional peer deps that @privy-io/react-auth references but we don't use
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@stripe/crypto": false,
+      "@farcaster/mini-app-solana": false,
+    };
+    return config;
+  },
   images: {
     domains: [
       "t.me",
