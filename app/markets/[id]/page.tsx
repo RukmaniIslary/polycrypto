@@ -3,7 +3,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { use } from "react";
+import { Suspense } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Clock, Users, ExternalLink } from "lucide-react";
@@ -16,8 +16,7 @@ import { useMarket } from "@/hooks/useMarkets";
 import { useTelegram } from "@/hooks/useTelegram";
 import { formatUSDT, formatDate, formatTimeRemaining, categoryColor, cn } from "@/lib/utils";
 
-export default function MarketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function MarketDetailContent({ id }: { id: string }) {
   const { data: market, isLoading } = useMarket(id);
   const { haptic } = useTelegram();
   const router = useRouter();
@@ -70,7 +69,6 @@ export default function MarketDetailPage({ params }: { params: Promise<{ id: str
           {/* Header */}
           <div className="px-4">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              {/* Flag or coin icon */}
               {market.flag_url && isFifa && (
                 <Image src={market.flag_url} alt="flag" width={28} height={20}
                   className="rounded-sm object-cover" unoptimized />
@@ -132,6 +130,22 @@ export default function MarketDetailPage({ params }: { params: Promise<{ id: str
         </div>
       )}
     </PageWrapper>
+  );
+}
+
+export default function MarketDetailPage({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={
+      <PageWrapper>
+        <div className="px-4 pt-4 flex flex-col gap-4">
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
+        </div>
+      </PageWrapper>
+    }>
+      <MarketDetailContent id={params.id} />
+    </Suspense>
   );
 }
 
