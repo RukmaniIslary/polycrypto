@@ -2,10 +2,20 @@
 
 import { createContext, useContext } from "react";
 
+export interface AuthUser {
+  id: string;
+  telegramId?: number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+  walletAddress?: string;
+}
+
 export interface SafePrivy {
   ready: boolean;
   authenticated: boolean;
-  user: { id: string; wallet?: { address: string } } | null;
+  user: AuthUser | null;
   login: () => void;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;

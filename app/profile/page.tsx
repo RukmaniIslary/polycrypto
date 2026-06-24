@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const [copied, setCopied] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
 
-  const walletAddress = privyUser?.wallet?.address ?? "";
+  const walletAddress = privyUser?.walletAddress ?? "";
   const displayName = tgUser?.first_name
     ? `${tgUser.first_name}${tgUser.last_name ? ` ${tgUser.last_name}` : ""}`
     : appUser?.username ?? "Anonymous";
