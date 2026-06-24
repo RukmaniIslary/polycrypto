@@ -19,7 +19,7 @@ async function placeOrder(
 
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.message ?? "Failed to place order");
+    throw new Error(err.error ?? err.message ?? "Failed to place order");
   }
 
   return res.json();

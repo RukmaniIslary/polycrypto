@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   const newBalance = user.usdt_balance - amount_usdt;
   await supabase
     .from("users")
-    .update({ usdt_balance: newBalance, total_volume: (user as { total_volume?: number }).total_volume ?? 0 + amount_usdt })
+    .update({ usdt_balance: newBalance, total_volume: ((user as { total_volume?: number }).total_volume ?? 0) + amount_usdt })
     .eq("id", userId);
 
   // Upsert position

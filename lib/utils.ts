@@ -6,7 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatUSDT(amount: number, decimals = 2): string {
+export function formatUSDT(amount: number | null | undefined, decimals = 2): string {
+  if (amount == null || isNaN(amount)) return "$0";
   if (amount >= 1_000_000) {
     return `$${(amount / 1_000_000).toFixed(1)}M`;
   }
@@ -24,19 +25,27 @@ export function formatPricePerShare(price: number): string {
   return `${Math.round(price * 100)}¢`;
 }
 
-export function formatTimeRemaining(closesAt: string): string {
+export function formatTimeRemaining(closesAt: string | null | undefined): string {
+  if (!closesAt) return "—";
   const date = new Date(closesAt);
+  if (isNaN(date.getTime())) return "—";
   const now = new Date();
   if (date < now) return "Closed";
   return formatDistanceToNow(date, { addSuffix: false });
 }
 
-export function formatDate(dateStr: string): string {
-  return format(new Date(dateStr), "MMM d, yyyy");
+export function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "—";
+  return format(date, "MMM d, yyyy");
 }
 
-export function formatDateTime(dateStr: string): string {
-  return format(new Date(dateStr), "MMM d, yyyy HH:mm");
+export function formatDateTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "—";
+  return format(date, "MMM d, yyyy HH:mm");
 }
 
 export function formatPnL(pnl: number): string {

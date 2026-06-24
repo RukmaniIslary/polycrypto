@@ -77,12 +77,12 @@ export function useSortedMarkets(sort: "volume" | "newest" | "ending" | "hot" = 
   });
 
   const sorted = [...markets].sort((a, b) => {
-    if (sort === "volume") return b.volume_usdt - a.volume_usdt;
+    if (sort === "volume") return (b.volume_usdt ?? 0) - (a.volume_usdt ?? 0);
     if (sort === "newest")
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     if (sort === "ending")
       return new Date(a.closes_at).getTime() - new Date(b.closes_at).getTime();
-    if (sort === "hot") return b.trader_count - a.trader_count;
+    if (sort === "hot") return (b.trader_count ?? 0) - (a.trader_count ?? 0);
     return 0;
   });
 

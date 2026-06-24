@@ -86,7 +86,7 @@ export function MarketCard({ market, index = 0 }: MarketCardProps) {
             <span className="font-mono">Vol {formatUSDT(market.volume_usdt)}</span>
             <div className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              <span>{market.trader_count.toLocaleString()}</span>
+              <span>{(market.trader_count ?? 0).toLocaleString()}</span>
             </div>
           </div>
         </div>

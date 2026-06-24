@@ -95,7 +95,7 @@ export default function MarketDetailPage({ params }: { params: Promise<{ id: str
             <div className="flex items-center gap-4 text-xs" style={{ color: "#94A3B8" }}>
               <div className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5" />
-                {market.trader_count.toLocaleString()} traders
+                {(market.trader_count ?? 0).toLocaleString()} traders
               </div>
               <span>Vol: <span className="font-mono" style={{ color: "#F1F5F9" }}>{formatUSDT(market.volume_usdt)}</span></span>
               <span>Liq: <span className="font-mono" style={{ color: "#F1F5F9" }}>{formatUSDT(market.liquidity_usdt)}</span></span>
