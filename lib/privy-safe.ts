@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Safe wrapper around usePrivy that returns minimal defaults when Privy is not
- * initialized (e.g. during development without a valid App ID).
+ * Safe Privy hook — works whether or not PrivyProvider is mounted.
+ * Reads from SafePrivyContext set by PrivyProviderWrapper/PrivyBridge.
+ * Never calls usePrivy() directly — avoids React error #438 in production.
  */
-import { usePrivy as _usePrivy } from "@privy-io/react-auth";
+import { createContext, useContext } from "react";
 
-// Minimal shape we actually use throughout the app
 export interface SafePrivy {
   ready: boolean;
   authenticated: boolean;
@@ -14,35 +14,30 @@ export interface SafePrivy {
   login: () => void;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
+  privyAvailable: boolean;
 }
 
-const DEMO_PRIVY: SafePrivy = {
+export const DEMO_PRIVY: SafePrivy = {
   ready: true,
   authenticated: false,
   user: null,
   login: () => {
-    alert(
-      "Add your Privy App ID to .env.local to enable auth.\n" +
-      "Get it free at https://dashboard.privy.io"
-    );
+    if (typeof window !== "undefined") {
+      alert(
+        "Set NEXT_PUBLIC_PRIVY_APP_ID in your environment variables.\n" +
+        "Get a free App ID at https://dashboard.privy.io"
+      );
+    }
   },
   logout: async () => {},
   getAccessToken: async () => null,
+  privyAvailable: false,
 };
 
+// This context is populated by PrivyProviderWrapper in app/privy-wrapper.tsx
+export const SafePrivyContext = createContext<SafePrivy>(DEMO_PRIVY);
+export const PrivyAvailableContext = createContext<boolean>(false);
+
 export function usePrivySafe(): SafePrivy {
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const privy = _usePrivy();
-    return {
-      ready: privy.ready,
-      authenticated: privy.authenticated,
-      user: privy.user as SafePrivy["user"],
-      login: privy.login,
-      logout: privy.logout,
-      getAccessToken: privy.getAccessToken,
-    };
-  } catch {
-    return DEMO_PRIVY;
-  }
+  return useContext(SafePrivyContext);
 }

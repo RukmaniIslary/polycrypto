@@ -1,20 +1,52 @@
 "use client";
 
-import { PrivyProvider } from "@privy-io/react-auth";
+import { PrivyProvider, usePrivy } from "@privy-io/react-auth";
+import type { SafePrivy } from "@/lib/privy-safe";
+import { DEMO_PRIVY, SafePrivyContext, PrivyAvailableContext } from "@/lib/privy-safe";
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
 
-// Validate that the App ID looks like a real Privy ID (starts with "cl" or similar cuid)
-// If not set, render children without Privy so the UI still loads
 function isValidPrivyAppId(id: string): boolean {
-  return id.length > 10 && id !== "your_privy_app_id" && id !== "placeholder-app-id";
+  return (
+    id.length > 10 &&
+    id !== "your_privy_app_id" &&
+    id !== "placeholder-app-id" &&
+    id !== "clzgc9nec02k610fge0omnyid" // placeholder we set earlier
+  );
+}
+
+// Inner bridge — reads from real Privy and exposes via shared context
+
+function PrivyBridge({ children }: { children: React.ReactNode }) {
+  const privy = usePrivy();
+  const value: SafePrivy = {
+    ready: privy.ready,
+    authenticated: privy.authenticated,
+    user: privy.user as SafePrivy["user"],
+    login: privy.login,
+    logout: privy.logout,
+    getAccessToken: privy.getAccessToken,
+    privyAvailable: true,
+  };
+  return (
+    <SafePrivyContext.Provider value={value}>
+      <PrivyAvailableContext.Provider value={true}>
+        {children}
+      </PrivyAvailableContext.Provider>
+    </SafePrivyContext.Provider>
+  );
 }
 
 export function PrivyProviderWrapper({ children }: { children: React.ReactNode }) {
   if (!isValidPrivyAppId(PRIVY_APP_ID)) {
-    // No valid Privy ID — render app in demo mode without auth
-    // Set NEXT_PUBLIC_PRIVY_APP_ID in .env.local to enable auth
-    return <>{children}</>;
+    // Demo mode — no Privy, app still loads fully
+    return (
+      <SafePrivyContext.Provider value={DEMO_PRIVY}>
+        <PrivyAvailableContext.Provider value={false}>
+          {children}
+        </PrivyAvailableContext.Provider>
+      </SafePrivyContext.Provider>
+    );
   }
 
   return (
@@ -34,7 +66,7 @@ export function PrivyProviderWrapper({ children }: { children: React.ReactNode }
         },
       }}
     >
-      {children}
+      <PrivyBridge>{children}</PrivyBridge>
     </PrivyProvider>
   );
 }
