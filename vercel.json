@@ -3,10 +3,13 @@
   "buildCommand": "next build",
   "devCommand": "next dev",
   "installCommand": "npm install",
-  "regions": ["sin1", "iad1"],
   "functions": {
-    "app/api/binance/**": { "maxDuration": 30 },
-    "app/api/orders/**": { "maxDuration": 15 }
+    "app/api/binance/**": {
+      "maxDuration": 30
+    },
+    "app/api/orders/**": {
+      "maxDuration": 15
+    }
   },
   "headers": [
     {
