@@ -12,13 +12,13 @@ import { useQueryClient } from "@tanstack/react-query";
 interface Chain {
   id: string;
   name: string;
-  icon: string;        // URL to chain logo
+  icon: string;
   token: string;
   network: string;
   minDeposit: string;
   arrivalTime: string;
   warning: string;
-  getAddress: (base: string) => string; // derive address from platform address
+  getAddress: () => string;
 }
 
 const CHAINS: Chain[] = [
@@ -42,7 +42,7 @@ const CHAINS: Chain[] = [
     minDeposit: "$1",
     arrivalTime: "~2–5 min",
     warning: "Only send USDC on Base. Other tokens may be lost permanently.",
-    getAddress: (base) => base,
+    getAddress: () => process.env.NEXT_PUBLIC_BASE_DEPOSIT_ADDRESS ?? "Contact support",
   },
   {
     id: "ethereum",
@@ -53,7 +53,7 @@ const CHAINS: Chain[] = [
     minDeposit: "$10",
     arrivalTime: "~5–20 min",
     warning: "Only send USDT on Ethereum. High gas fees apply.",
-    getAddress: (base) => base,
+    getAddress: () => process.env.NEXT_PUBLIC_ETH_DEPOSIT_ADDRESS ?? "Contact support",
   },
   {
     id: "polygon",
@@ -64,7 +64,7 @@ const CHAINS: Chain[] = [
     minDeposit: "$1",
     arrivalTime: "~2–5 min",
     warning: "Only send USDT on Polygon. Other tokens may be lost permanently.",
-    getAddress: (base) => base,
+    getAddress: () => process.env.NEXT_PUBLIC_POLYGON_DEPOSIT_ADDRESS ?? "Contact support",
   },
   {
     id: "bitcoin",
@@ -86,7 +86,7 @@ const CHAINS: Chain[] = [
     minDeposit: "$1",
     arrivalTime: "~2–5 min",
     warning: "Only send USDT on Arbitrum. Other tokens may be lost permanently.",
-    getAddress: (base) => base,
+    getAddress: () => process.env.NEXT_PUBLIC_ARB_DEPOSIT_ADDRESS ?? "Contact support",
   },
   {
     id: "bnb",
@@ -97,13 +97,11 @@ const CHAINS: Chain[] = [
     minDeposit: "$1",
     arrivalTime: "~2–5 min",
     warning: "Only send USDT on BNB Chain (BEP-20). Other tokens may be lost permanently.",
-    getAddress: (base) => base,
+    getAddress: () => process.env.NEXT_PUBLIC_BSC_DEPOSIT_ADDRESS ?? "Contact support",
   },
 ];
 
-const PLATFORM_ADDRESS = process.env.NEXT_PUBLIC_PLATFORM_DEPOSIT_ADDRESS ?? "";
-
-export function DepositModal() {
+export function DepositModal() {export function DepositModal() {
   const [selected, setSelected] = useState<Chain | null>(null);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -113,7 +111,7 @@ export function DepositModal() {
   const { haptic } = useTelegram();
   const queryClient = useQueryClient();
 
-  const address = selected ? selected.getAddress(PLATFORM_ADDRESS) : "";
+  const address = selected ? selected.getAddress() : "";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(address);
