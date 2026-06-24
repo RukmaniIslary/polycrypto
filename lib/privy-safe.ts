@@ -1,40 +1,26 @@
 "use client";
-
-import { createContext, useContext } from "react";
-
-export interface AuthUser {
-  id: string;
-  telegramId?: number;
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  photoUrl?: string;
-  walletAddress?: string;
-}
+import { useAuth } from "@/lib/auth-context";
+export type { AuthUser } from "@/lib/auth-context";
 
 export interface SafePrivy {
-  ready: boolean;
+  user: import("@/lib/auth-context").AuthUser | null;
   authenticated: boolean;
-  user: AuthUser | null;
+  ready: boolean;
   login: () => void;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
   privyAvailable: boolean;
 }
 
-export const DEMO_PRIVY: SafePrivy = {
-  ready: true,
-  authenticated: false,
-  user: null,
-  login: () => {},
-  logout: async () => {},
-  getAccessToken: async () => null,
-  privyAvailable: false,
-};
-
-export const SafePrivyContext = createContext<SafePrivy>(DEMO_PRIVY);
-export const PrivyAvailableContext = createContext<boolean>(false);
-
 export function usePrivySafe(): SafePrivy {
-  return useContext(SafePrivyContext);
+  const auth = useAuth();
+  return {
+    user: auth.user,
+    authenticated: auth.authenticated,
+    ready: auth.ready,
+    login: auth.login,
+    logout: async () => auth.logout(),
+    getAccessToken: async () => auth.getToken(),
+    privyAvailable: auth.authenticated,
+  };
 }
