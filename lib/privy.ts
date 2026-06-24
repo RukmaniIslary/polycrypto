@@ -1,8 +1,3 @@
-// Privy config kept for reference — actual auth is handled by PrivyProviderWrapper
-export const privyConfig = {
-  loginMethods: ["telegram", "wallet"],
-  appearance: {
-    theme: "dark" as const,
-    accentColor: "#3B82F6",
-  },
-};
+// Privy is configured in client-layout.tsx via PrivyProvider.
+// This file is kept for any standalone config references.
+export const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID!;

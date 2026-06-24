@@ -1,9 +1,19 @@
 "use client";
-import { useAuth } from "@/lib/auth-context";
-export type { AuthUser } from "@/lib/auth-context";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+
+export interface AuthUser {
+  id: string;
+  telegramId?: number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+  walletAddress?: string;
+  email?: string;
+}
 
 export interface SafePrivy {
-  user: import("@/lib/auth-context").AuthUser | null;
+  user: AuthUser | null;
   authenticated: boolean;
   ready: boolean;
   login: () => void;
@@ -12,15 +22,41 @@ export interface SafePrivy {
   privyAvailable: boolean;
 }
 
-export function usePrivySafe(): SafePrivy {
-  const auth = useAuth();
+/** Maps a Privy user object to our AuthUser shape */
+function mapPrivyUser(privyUser: ReturnType<typeof usePrivy>["user"]): AuthUser | null {
+  if (!privyUser) return null;
+
+  // Telegram linked account
+  const tgAccount = privyUser.linkedAccounts?.find((a) => a.type === "telegram");
+  // Email
+  const emailAccount = privyUser.linkedAccounts?.find((a) => a.type === "email");
+  // Wallet
+  const walletAccount = privyUser.linkedAccounts?.find((a) => a.type === "wallet");
+
+  const tg = tgAccount as any;
+
   return {
-    user: auth.user,
-    authenticated: auth.authenticated,
-    ready: auth.ready,
-    login: auth.login,
-    logout: async () => auth.logout(),
-    getAccessToken: async () => auth.getToken(),
-    privyAvailable: auth.authenticated,
+    id: privyUser.id,
+    telegramId: tg?.telegramUserId ? Number(tg.telegramUserId) : undefined,
+    firstName: tg?.firstName ?? privyUser.google?.name?.split(" ")[0],
+    lastName: tg?.lastName,
+    username: tg?.username ?? (emailAccount as any)?.address?.split("@")[0],
+    photoUrl: tg?.photoUrl,
+    walletAddress: (walletAccount as any)?.address,
+    email: (emailAccount as any)?.address,
+  };
+}
+
+export function usePrivySafe(): SafePrivy {
+  const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
+
+  return {
+    user: mapPrivyUser(user),
+    authenticated,
+    ready,
+    login,
+    logout,
+    getAccessToken,
+    privyAvailable: true,
   };
 }
