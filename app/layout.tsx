@@ -3,7 +3,7 @@ import "./globals.css";
 import { ClientLayout } from "./client-layout";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://polycrypto-livid.vercel.app"),
+  metadataBase: new URL("https://polycrypto-opal.vercel.app"),
   title: "PolyCrypto — Predict. Trade. Win.",
   description: "Crypto prediction markets on Telegram",
   manifest: "/manifest.json",
