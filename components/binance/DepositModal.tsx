@@ -101,7 +101,7 @@ const CHAINS: Chain[] = [
   },
 ];
 
-export function DepositModal() {export function DepositModal() {
+export function DepositModal() {
   const [selected, setSelected] = useState<Chain | null>(null);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
