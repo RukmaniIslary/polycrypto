@@ -12,6 +12,11 @@ const nextConfig = {
       ...config.resolve.alias,
       "@stripe/crypto": false,
       "@farcaster/mini-app-solana": false,
+      // Stub wagmi connector peer deps not installed
+      "@base-org/account": false,
+      "@coinbase/wallet-sdk": false,
+      "@metamask/connect-evm": false,
+      "accounts": false,
     };
     return config;
   },
