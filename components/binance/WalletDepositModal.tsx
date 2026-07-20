@@ -29,7 +29,7 @@ interface WalletDepositModalProps {
 
 export function WalletDepositModal({ isOpen, onClose, onSuccess }: WalletDepositModalProps) {
   const [step, setStep] = useState<"connect" | "amount" | "confirm" | "pending" | "done">("connect");
-  const [selectedChainId, setSelectedChainId] = useState(polygon.id);
+  const [selectedChainId, setSelectedChainId] = useState<number>(polygon.id);
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
 
