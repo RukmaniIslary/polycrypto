@@ -7,11 +7,5 @@
     "app/api/binance/**": { "maxDuration": 30 },
     "app/api/orders/**": { "maxDuration": 15 },
     "app/api/cron/**": { "maxDuration": 30 }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/check-deposits",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  }
 }
